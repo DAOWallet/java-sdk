@@ -24,6 +24,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.Map;
 
 public class DaoWallet {
@@ -44,6 +45,7 @@ public class DaoWallet {
     private static final String URL_WITHDRAWAL_CRYPTO_PATH = "/withdrawal/crypto";
     private static final String URL_INVOICE_CREATE_PATH = "/invoice/new";
     private static final String URL_INVOICE_STATUS_PATH = "/invoice/status?id=";
+    private static final String URL_BALANCE_PATH = "/balance";
 
     /**
      *
@@ -214,6 +216,27 @@ public class DaoWallet {
         }
         else {
             return objectMapper.readValue(ret, InvoiceResponse.class);
+        }
+    }
+
+    /**
+     *
+     * @return ResponseError on error or InvoiceResponse on success
+     * @throws SignatureException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException
+     * @throws IOException
+     */
+    public Object getBalance() throws SignatureException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put(PROCESSING_KEY_HEADER, apiKey);
+        headers.put(PROCESSING_SIGNATURE_HEADER, calculateHMAC(secretKey, "{}"));
+        String ret = getRequest(URL_BALANCE_PATH, headers);
+        if(!ret.contains("currency_name")){
+            return objectMapper.readValue(ret, ResponseError.class);
+        }
+        else {
+            return objectMapper.readValue(ret, BalanceResponse.class);
         }
     }
 
